@@ -1,32 +1,46 @@
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from clientes.models import Clientes
 from rest_framework.views import APIView
 from clientes.serializers import ClientesSerializer
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
+from django.core.exceptions import ValidationError
 
 
 class ClientesAPIView(APIView):
     model = Clientes
-    serializer_class = ClientesSerializer
-    # permission_classes = [AllowAny]
 
-    def get(self, request):
+    def get(self, request, pk=None):
+        if pk is not None:
+            return self.detail(request, pk)
         queryset = self.model.objects.all()
-        if request.query_params.get('pk'):
-            instance = get_object_or_404(queryset, pk=request.query_params['pk'])
-            serializer = self.serializer_class(instance)
-        else:
-            serializer = self.serializer_class(queryset, many=True)
+        serializer =  ClientesSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def detail(self, request, pk):
+        queryset = self.model.objects.all()
+        instance = get_object_or_404(queryset, pk=pk)
+        serializer = ClientesSerializer(instance)
         return Response(serializer.data)
 
     def post(self, request):
-        print(request.headers)
-        serializer = self.serializer_class(data=request.data)
+        serializer = ClientesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
-    def put(self, request, pk=None):
-        pass
+    def put(self, request, pk):
+        queryset = self.model.objects.all()
+        instance = get_object_or_404(queryset, pk=pk)
+        serializer = ClientesSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self, request, pk):
+        queryset = self.model.objects.all()
+        instance = get_object_or_404(queryset, pk=pk)
+        nombre = instance.nombre
+        instance.delete()
+        return Response({'detail': f'El cliente {nombre} se a eliminado'})
+

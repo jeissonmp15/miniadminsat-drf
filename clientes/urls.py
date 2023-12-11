@@ -10,5 +10,6 @@ app_name = 'clientes'
 # router.register(r'', get)
 
 urlpatterns = [
-    path('', ClientesAPIView.as_view(), name='get-clientes')
+    path('', ClientesAPIView.as_view(), name='get-clientes'),
+    path('<int:pk>/', ClientesAPIView.as_view(), name='detail-clientes')
 ]
